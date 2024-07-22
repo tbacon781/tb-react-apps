@@ -9,15 +9,14 @@ Author: TB Tech
 // Enqueue styles
 function tb_react_enqueue_styles() {
     // Enqueue your plugin's CSS
-    wp_enqueue_style('tb-react-styles', plugin_dir_url(__FILE__) . 'night-toggle/dist/assets/index-Ch2PmRyR.css');
-
+    wp_enqueue_style('tb-react-styles', plugin_dir_url(__FILE__) . 'night-toggle/dist/assets/index.css');
 }
 add_action('wp_enqueue_scripts', 'tb_react_enqueue_styles');
 
 // Enqueue scripts
 function tb_react_enqueue_scripts() {
     // Enqueue your plugin's JavaScript
-    wp_enqueue_script('tb-react-scripts', plugin_dir_url(__FILE__) . 'night-toggle/dist/assets/index-Bm5ZReUV.js', array(), null, true);
+    wp_enqueue_script('tb-react-scripts', plugin_dir_url(__FILE__) . 'night-toggle/dist/assets/index.js', array(), null, true);
 }
 add_action('wp_enqueue_scripts', 'tb_react_enqueue_scripts');
 
@@ -48,7 +47,7 @@ add_action('admin_menu', 'tb_react_shortcodes_menu');
 function tb_react_settings_page_callback() {
     ?>
     <div class="wrap">
-        <h1>TB React Settings</h1><br>
+        <h1>Night Toggle Settings</h1><br>
         <h2 style="font-weight:100; font-size:14px; padding-bottom:60px;" > Use the shortcode [tb-night-mode] to inject night mode toggle</h2>
 
         <!-- Light Mode Colors Section -->
@@ -58,22 +57,10 @@ function tb_react_settings_page_callback() {
             <?php do_settings_sections('tb_react_light_colors'); ?>
 
             <table class="form-table">
-                <tr valign="top">
-                    <th scope="row">Background Color</th>
-                    <td><input type="color" name="tb_react_light_background_color" value="<?php echo esc_attr(get_option('tb_react_light_background_color', '#ffffff')); ?>"></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row">Foreground Color</th>
-                    <td><input type="color" name="tb_react_light_foreground_color" value="<?php echo esc_attr(get_option('tb_react_light_foreground_color', '#162140')); ?>"></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row">Primary Text Color</th>
-                    <td><input type="color" name="tb_react_light_primary_text_color" value="<?php echo esc_attr(get_option('tb_react_light_primary_text_color', '#000000')); ?>"></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row">Secondary Text Color</th>
-                    <td><input type="color" name="tb_react_light_secondary_text_color" value="<?php echo esc_attr(get_option('tb_react_light_secondary_text_color', '#ffffff')); ?>"></td>
-                </tr>
+                <?php tb_react_color_input('tb_react_light_background_color', 'Background Color', '#ffffff'); ?>
+                <?php tb_react_color_input('tb_react_light_foreground_color', 'Foreground Color', '#162140'); ?>
+                <?php tb_react_color_input('tb_react_light_primary_text_color', 'Primary Text Color', '#000000'); ?>
+                <?php tb_react_color_input('tb_react_light_secondary_text_color', 'Secondary Text Color', '#ffffff'); ?>
             </table>
 
             <?php submit_button(); ?>
@@ -86,27 +73,38 @@ function tb_react_settings_page_callback() {
             <?php do_settings_sections('tb_react_dark_colors'); ?>
 
             <table class="form-table">
-                <tr valign="top">
-                    <th scope="row">Background Color</th>
-                    <td><input type="color" name="tb_react_dark_background_color" value="<?php echo esc_attr(get_option('tb_react_dark_background_color', '#162140')); ?>"></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row">Foreground Color</th>
-                    <td><input type="color" name="tb_react_dark_foreground_color" value="<?php echo esc_attr(get_option('tb_react_dark_foreground_color', '#1f2e3e')); ?>"></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row">Primary Text Color</th>
-                    <td><input type="color" name="tb_react_dark_primary_text_color" value="<?php echo esc_attr(get_option('tb_react_dark_primary_text_color', '#ffffff')); ?>"></td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row">Secondary Text Color</th>
-                    <td><input type="color" name="tb_react_dark_secondary_text_color" value="<?php echo esc_attr(get_option('tb_react_dark_secondary_text_color', '#000000')); ?>"></td>
-                </tr>
+                <?php tb_react_color_input('tb_react_dark_background_color', 'Background Color', '#162140'); ?>
+                <?php tb_react_color_input('tb_react_dark_foreground_color', 'Foreground Color', '#1f2e3e'); ?>
+                <?php tb_react_color_input('tb_react_dark_primary_text_color', 'Primary Text Color', '#ffffff'); ?>
+                <?php tb_react_color_input('tb_react_dark_secondary_text_color', 'Secondary Text Color', '#000000'); ?>
             </table>
 
             <?php submit_button(); ?>
         </form>
     </div>
+    <?php
+}
+
+// Function to generate the color input fields with hex input
+function tb_react_color_input($option_name, $label, $default) {
+    $color_value = esc_attr(get_option($option_name, $default));
+    ?>
+    <tr valign="top">
+        <th scope="row"><?php echo $label; ?></th>
+        <td>
+            <input type="color" name="<?php echo $option_name; ?>" value="<?php echo $color_value; ?>" oninput="updateHexInput(this)">
+            <input type="text" class="hex-input" name="<?php echo $option_name; ?>_hex" value="<?php echo $color_value; ?>" pattern="#[a-fA-F0-9]{6}" title="Hexadecimal color code" oninput="updateColorPicker(this)">
+        </td>
+    </tr>
+    <script>
+        function updateHexInput(colorInput) {
+            colorInput.nextElementSibling.value = colorInput.value;
+        }
+
+        function updateColorPicker(hexInput) {
+            hexInput.previousElementSibling.value = hexInput.value;
+        }
+    </script>
     <?php
 }
 
@@ -125,14 +123,6 @@ function tb_react_register_settings() {
     register_setting('tb_react_dark_colors', 'tb_react_dark_secondary_text_color');
 }
 add_action('admin_init', 'tb_react_register_settings');
-
-// Enqueue styles for the admin settings page
-function tb_react_enqueue_admin_styles($hook) {
-    if ($hook == 'toplevel_page_tb-react-settings') {
-        wp_enqueue_style('wp-color-picker');
-    }
-}
-add_action('admin_enqueue_scripts', 'tb_react_enqueue_admin_styles');
 
 // Enqueue styles for the front end based on settings
 function enqueue_react_app_conditional() {
